@@ -1,0 +1,66 @@
+# ------------------------------------------------------------------
+# Case 2 - Valencia, Celis, Mendiburu, Bravo, Khare (COB-2023-0803)
+# Mi = 4.70, wedge angle = 60 deg -> dual RR/MR region
+# Units: CGS (cm, g, s, K)
+# ------------------------------------------------------------------
+max_step = 1000000
+stop_time = 3.0e-3
+
+geometry.is_periodic = 0 0
+geometry.coord_sys   = 0
+geometry.prob_lo     = 0.0   0.0
+geometry.prob_hi     = 400.0 75.0
+amr.n_cell           = 512   96
+
+pelec.lo_bc = "Hard"     "SlipWall"
+pelec.hi_bc = "FOExtrap" "SlipWall"
+
+pelec.do_hydro      = 1
+pelec.do_mol        = 0
+pelec.diffuse_vel   = 0
+pelec.diffuse_temp  = 0
+pelec.diffuse_spec  = 0
+pelec.do_react      = 0
+
+pelec.cfl         = 0.3
+pelec.init_shrink = 0.3
+pelec.change_max  = 1.1
+pelec.dt_cutoff   = 5.e-20
+
+pelec.sum_interval = 1
+amr.v              = 1
+pelec.v            = 1
+
+amr.max_level       = 3
+amr.ref_ratio       = 2 2 2 2
+amr.regrid_int      = 2 2 2 2
+amr.blocking_factor = 16
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2
+
+amr.check_file = chk2
+amr.check_int  = 2000
+amr.plot_file  = plt2
+amr.plot_int   = 200
+amr.plot_vars  = density Temp pressure
+amr.derive_plot_vars = x_velocity y_velocity magvel pressure
+
+eb2.geom_type    = plane
+eb2.plane_point  = 300.0     0.0
+eb2.plane_normal = 0.866025 -0.5
+
+tagging.eb_refine_type   = "static"
+tagging.max_eb_refine_lev = 3
+tagging.denratio         = 1.05
+tagging.max_denratio_lev = 3
+
+# Region 1: P1=6.13283 kPa, T1=298.5 K, rho1=0.0712 kg/m3
+prob.p_r   = 61328.3
+prob.rho_r = 7.12e-5
+prob.u_r   = 0.0
+# Region 2 (Ms=4.70)
+prob.p_l   = 1570300.0
+prob.rho_l = 3.48407e-4
+prob.u_l   = 129530.0
+prob.idir  = 1
+prob.frac  = 0.125

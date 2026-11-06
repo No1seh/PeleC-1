@@ -24,6 +24,14 @@
 // a moving planar shock (region 2, post-shock) propagates in +x into a
 // quiescent ambient (region 1) and interacts with a rigid wedge modeled
 // as an embedded boundary (eb2.geom_type = plane) further downstream.
+//
+// Same EB-plane/PPM/GammaLaw/AMR approach as PeleC's built-in generic
+// Mach-reflection test (Exec/RegTests/EB-C14), but EB-C14 starts both
+// states at rest and lets the shock self-form, which does not hit a
+// prescribed Ms. Here region 2 instead carries the nonzero post-shock
+// velocity from the Rankine-Hugoniot relations (paper Eqs. 1-4) and is
+// fed in continuously via a Hard inflow, so each case reproduces the
+// exact Ms/theta_w pair from Table 1.
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE

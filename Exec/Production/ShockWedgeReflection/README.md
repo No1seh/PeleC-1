@@ -8,6 +8,31 @@ Replication of:
 > Congress of Mechanical Engineering (COBEM 2023), COB-2023-0803.
 > DOI: 10.48550/arXiv.2309.05882
 
+## Relationship to PeleC's built-in EB-C14 test
+
+PeleC already ships a generic "Mach reflection" EB verification case at
+`Exec/RegTests/EB-C14` (shock colliding with a ramp, `eb2.geom_type = plane`,
+multi-level AMR, PPM, GammaLaw) — the same ingredients used here. This case
+reuses that exact approach, but differs in one deliberate way:
+
+- **EB-C14** initializes a two-state Riemann problem with **zero velocity on
+  both sides** and lets the shock self-form from the pressure/density jump.
+  That is fine for a qualitative check that a Mach stem/triple point forms,
+  but the resulting incident shock's Mach number is whatever the full
+  Riemann solution produces — it is not set directly from a target `Ms`.
+- **This case** needs the *exact* `Ms` and wedge angle from Table 1 of
+  COB-2023-0803, so instead the post-shock (region 2) state is computed
+  directly from the Rankine-Hugoniot relations (Eqs. 1-4, which assume a
+  quiescent ambient and therefore a **nonzero** induced post-shock velocity)
+  and is fed in continuously as a `Hard` inflow at x-lo — matching the
+  paper's Figure 2 "fixed inlet boundary". Using EB-C14's zero-velocity
+  trick here would not reproduce the paper's prescribed `Ms` values.
+
+Everything else (EB plane wedge, PPM, GammaLaw EOS, AMR) follows EB-C14's
+pattern directly. The smoke test for Case 3 confirmed this: simulated
+density/pressure min-max matched the hand-derived Rankine-Hugoniot states
+exactly.
+
 ## Problem setup
 
 - 2D domain: x in [0, 4] m, y in [0, 0.75] m (400 x 75 cm in the CGS units

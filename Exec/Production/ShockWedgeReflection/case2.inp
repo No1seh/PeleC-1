@@ -9,8 +9,8 @@ stop_time = 3.0e-3
 geometry.is_periodic = 0 0
 geometry.coord_sys   = 0
 geometry.prob_lo     = 0.0   0.0
-geometry.prob_hi     = 400.0 75.0
-amr.n_cell           = 512   96
+geometry.prob_hi     = 400.0 175.0
+amr.n_cell           = 512   224
 
 pelec.lo_bc = "Hard"     "SlipWall"
 pelec.hi_bc = "FOExtrap" "SlipWall"
@@ -45,6 +45,11 @@ amr.plot_int   = 200
 amr.plot_vars  = density Temp pressure
 amr.derive_plot_vars = x_velocity y_velocity magvel pressure
 
+# Per Figure 2, the wedge runs all the way to the outlet (x=400cm), no open
+# flow beyond it. theta=60 deg needs height = 100*tan(60deg) = 173.2cm;
+# rounded up to the nearest 16-cell multiple at dx=0.78125cm -> 224 cells
+# -> 175.0cm (same per-case sizing rule used for all 4 cases). Simple
+# infinite plane is correct since the wedge spans the full domain width.
 eb2.geom_type    = plane
 eb2.plane_point  = 300.0     0.0
 eb2.plane_normal = 0.866025 -0.5

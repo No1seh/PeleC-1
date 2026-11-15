@@ -35,11 +35,15 @@ exactly.
 
 ## Problem setup
 
-- 2D domain: x in [0, 4] m, y in [0, 0.75] m (400 x 75 cm in the CGS units
-  PeleC/AMReX use internally).
-- Base grid: 512 x 96 cells (dx = dy = 7.8125 mm), refined up to 3 AMR
-  levels (ref_ratio = 2), giving a finest cell size of 0.977 mm, matching
-  the mesh-independence study in Section 5.1 of the paper.
+- 2D domain: x in [0, 4] m; the height is sized per case so the wedge
+  reaches the outlet exactly (Figure 2 of the paper, no open gap beyond the
+  wedge): height = 100 cm * tan(theta_w), rounded up to a multiple of 16
+  cells. This gives 200 cm (Case 1), 175 cm (Case 2) and 75 cm (Cases 3, 4).
+  Leaving a gap exposes a convex corner at the top right and Case 2 then
+  aborts with NaNs.
+- Base grid: 512 cells in x (dx = dy = 7.8125 mm in every case), refined up
+  to 3 AMR levels (ref_ratio = 2), giving a finest cell size of 0.977 mm,
+  matching the mesh-independence study in Section 5.1 of the paper.
 - A planar incident shock is initialized at x = 0.5 m, separating:
   - Region 2 (post-shock, x <= 0.5 m): computed from the ambient state and
     the incident shock Mach number Ms via the Rankine-Hugoniot relations
@@ -63,10 +67,10 @@ exactly.
 
 | Case | theta_w | Ms   | Regime | Input file |
 |------|---------|------|--------|------------|
-| 1    | 63.4°   | 2.05 | RR     | `case1.inp` |
-| 2    | 60°     | 4.70 | RR/MR dual region | `case2.inp` |
-| 3    | 27°     | 2.03 | SMR    | `case3.inp` |
-| 4    | 20°     | 7.19 | TMR    | `case4.inp` |
+| 1    | 63.4°   | 2.05 | RR     | `case1.inp`, `case1_fine.inp` |
+| 2    | 60°     | 4.70 | RR/MR dual region | `case2.inp`, `case2_fine.inp` |
+| 3    | 27°     | 2.03 | SMR    | `case3.inp`, `case3_fine.inp` |
+| 4    | 20°     | 7.19 | TMR    | `case4.inp`, `case4_fine.inp` |
 
 All post-shock (region 2) states were derived from Table 1's ambient
 conditions using the Rankine-Hugoniot relations (Eqs. 1-4), with
@@ -86,7 +90,7 @@ submodule — no separate/system SUNDIALS installation is required or used.
 ```bash
 cd PeleC
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DPELE_DIM=2 \
-  -DPELE_ENABLE_MPI=OFF -DPELE_ENABLE_TESTS=OFF
+  -DPELE_ENABLE_MPI=ON -DPELE_ENABLE_TESTS=OFF
 cmake --build build --target PeleC-ShockWedgeReflection -j"$(nproc)"
 ```
 
@@ -94,9 +98,33 @@ cmake --build build --target PeleC-ShockWedgeReflection -j"$(nproc)"
 
 ```bash
 cd Exec/Production/ShockWedgeReflection
-../../../build/Exec/Production/ShockWedgeReflection/PeleC-ShockWedgeReflection case1.inp
+mpirun -np 8 ../../../build/Exec/Production/ShockWedgeReflection/PeleC-ShockWedgeReflection case1_fine.inp
 ```
 
 Plotfiles (`plt1_*`, etc.) can be visualized with ParaView, VisIt, or
 `yt`, and compared against Figures 6-10 of the paper (density ratio
 contours and wedge-wall density profiles).
+
+The `caseN_fine.inp` files are the same setups with plotfiles every 20
+steps, used for the wall-profile extraction below.
+
+## Comparison against Figure 10 of the paper
+
+Wall density-ratio profiles are taken from a single plotfile shortly before
+the incident shock foot reaches the end of the wedge, plotted against the
+distance along the wall normalised by the shock-foot distance (the pattern
+is self-similar: profiles from three different instants collapse). Paper
+values were read by eye off the blue PeleC line of Figure 10 (about +/-0.2).
+
+| Case | Result vs. paper (GammaLaw, gamma = 1.4) |
+|------|-------------------------------------------|
+| 1    | Within ~2-4% along the whole profile (plateau 5.98 vs 6.00) |
+| 3    | Within ~2% (peak 4.32 vs ~4.3, step down to 3.33 vs ~3.3) |
+| 2    | Same shape, ~5% low on the wedge (plateau 14.6 vs ~15.3); inflow matches (4.88 vs ~4.9) |
+| 4    | Same shape, ~17% low everywhere; inflow is 5.47 (the exact gamma = 1.4 value) vs ~6.5 in the paper |
+
+The Case 4 inflow density ratio shown in the paper (~6.5) cannot be obtained
+with gamma = 1.4 (the strong-shock limit is 6). See
+`../ShockWedgeReflectionFuego` for runs with temperature-dependent cp, which
+match that inflow value but overshoot the wedge plateau. No single gas model
+tested reproduces both Case 2 and Case 4 of the paper.

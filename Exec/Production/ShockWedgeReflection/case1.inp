@@ -10,8 +10,8 @@ stop_time = 6.0e-3
 geometry.is_periodic = 0 0
 geometry.coord_sys   = 0        # 0 => cartesian
 geometry.prob_lo     = 0.0   0.0
-geometry.prob_hi     = 400.0 75.0
-amr.n_cell           = 512   96
+geometry.prob_hi     = 400.0 200.0
+amr.n_cell           = 512   256
 
 # >>>>>>>>>>>>>  BC KEYWORDS <<<<<<<<<<<<<<<<<<<<<<
 # Interior, UserBC, Hard, FOExtrap, Symmetry, SlipWall, NoSlipWall
@@ -56,7 +56,14 @@ amr.plot_int   = 200
 amr.plot_vars  = density Temp pressure
 amr.derive_plot_vars = x_velocity y_velocity magvel pressure
 
-# EMBEDDED BOUNDARY: rigid wedge, apex at x = 300 cm, inclined at 63.4 deg
+# EMBEDDED BOUNDARY: rigid wedge, apex at x = 300 cm, inclined at 63.4 deg.
+# Per the paper's own Figure 2, the wedge runs all the way to the outlet
+# boundary at the domain's right edge (x=400cm) - there is no open flow
+# region to the right of the wedge. For theta=63.4 deg that requires a
+# domain height of 225cm (100cm horizontal run * tan(63.4deg) = 199.1cm,
+# plus margin), taller than the paper's literal "0.75m" (which describes
+# Case 3's shallower-angle setup). A simple infinite plane is exactly
+# correct here since the wedge legitimately spans the full domain width.
 eb2.geom_type   = plane
 eb2.plane_point  = 300.0     0.0
 eb2.plane_normal = 0.893629 -0.448799
